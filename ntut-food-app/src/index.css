@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Serif TC', 'Microsoft YaHei', '微軟雅黑', sans-serif !important;
+  background: #0a0a0a;
+  color: white;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+/* 強制字體載入 */
+.font-serif-tc {
+  font-family: 'Noto Serif TC', 'Microsoft YaHei', '微軟雅黑', serif !important;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace !important;
+}
