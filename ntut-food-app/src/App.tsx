@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import p5 from 'p5';
 
 // 餐廳資料庫
@@ -22,6 +22,7 @@ let decodeHistory: any[] = [];
 function App() {
   const p5ContainerRef = useRef<HTMLDivElement>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     if (!p5ContainerRef.current) return;
@@ -403,14 +404,11 @@ function App() {
 
       const manageOverlayMask = () => {
         const mask = document.getElementById('overlay-mask');
-        const historyPanel = document.getElementById('history-panel');
         
         if (systemState === 'DECODED') {
           if (mask) mask.classList.add('active');
-          if (historyPanel) historyPanel.classList.add('active');
         } else {
           if (mask) mask.classList.remove('active');
-          if (historyPanel) historyPanel.classList.remove('active');
         }
       };
 
@@ -606,7 +604,18 @@ function App() {
             lineHeight: 1.6,
             opacity: 0.8
           }}></div>
-          <button id="maps-btn" style={{
+          <button id="maps-btn" 
+            onMouseEnter={(e) => {
+              (e.target as HTMLButtonElement).style.background = '#00ff7f';
+              (e.target as HTMLButtonElement).style.color = '#000000';
+              (e.target as HTMLButtonElement).style.boxShadow = '0 0 20px rgba(0, 255, 127, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              (e.target as HTMLButtonElement).style.background = 'transparent';
+              (e.target as HTMLButtonElement).style.color = '#00ff7f';
+              (e.target as HTMLButtonElement).style.boxShadow = 'none';
+            }}
+            style={{
             display: 'none',
             marginTop: '20px',
             padding: '10px 20px',
@@ -615,29 +624,63 @@ function App() {
             color: '#00ff7f',
             fontFamily: 'JetBrains Mono, monospace',
             cursor: 'pointer',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            pointerEvents: 'auto'
           }}>
             NAVIGATE_TO_LOCATION
           </button>
         </div>
         
+        {/* 歷史紀錄切換按鈕 */}
+        <button 
+          onClick={() => setShowHistory(!showHistory)}
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 200,
+            padding: '10px 15px',
+            background: 'rgba(0, 0, 0, 0.8)',
+            border: '1px solid #00ff7f',
+            color: '#00ff7f',
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '12px',
+            cursor: 'pointer',
+            borderRadius: '4px',
+            transition: 'all 0.3s ease',
+            pointerEvents: 'auto'
+          }}
+          onMouseEnter={(e) => {
+            (e.target as HTMLButtonElement).style.background = '#00ff7f';
+            (e.target as HTMLButtonElement).style.color = '#000000';
+          }}
+          onMouseLeave={(e) => {
+            (e.target as HTMLButtonElement).style.background = 'rgba(0, 0, 0, 0.8)';
+            (e.target as HTMLButtonElement).style.color = '#00ff7f';
+          }}
+        >
+          {showHistory ? 'HIDE_HISTORY' : 'SHOW_HISTORY'}
+        </button>
+
         <div id="history-panel" style={{
-          position: 'absolute',
-          top: '30px',
-          left: '30px',
-          width: '280px',
-          maxHeight: '70vh',
+          position: 'fixed',
+          top: showHistory ? '70px' : '-100%',
+          right: '20px',
+          width: typeof window !== 'undefined' && window.innerWidth <= 768 ? 'calc(100vw - 40px)' : '300px',
+          maxHeight: typeof window !== 'undefined' && window.innerWidth <= 768 ? '50vh' : '70vh',
           overflowY: 'auto',
-          background: 'rgba(0, 0, 0, 0.8)',
-          border: '1px solid #333',
-          padding: '20px',
+          background: 'rgba(0, 0, 0, 0.95)',
+          border: '1px solid #00ff7f',
+          borderRadius: '8px',
+          padding: '15px',
           fontFamily: 'JetBrains Mono, monospace',
           fontSize: '12px',
           color: '#ffffff',
-          opacity: 0,
-          transform: 'translateX(-20px)',
-          transition: 'all 0.3s ease',
-          pointerEvents: 'none'
+          transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          pointerEvents: showHistory ? 'auto' : 'none',
+          zIndex: 150,
+          backdropFilter: 'blur(10px)',
+          boxShadow: showHistory ? '0 8px 32px rgba(0, 255, 127, 0.3)' : 'none'
         }}>
           <div id="history-title" style={{
             color: '#00ff7f',
@@ -710,14 +753,47 @@ function App() {
           80% { transform: translate(2px, -2px); color: #ff00ff; }
         }
         
-        #history-panel.active {
-          opacity: 1 !important;
-          transform: translateX(0) !important;
-          pointer-events: auto !important;
-        }
         
         #overlay-mask.active {
           opacity: 1 !important;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+          #header {
+            font-size: 12px !important;
+            top: 15px !important;
+            left: 15px !important;
+          }
+          
+          #decoded-result {
+            padding: 20px !important;
+            font-size: 2.5rem !important;
+          }
+          
+          #decoded-info {
+            font-size: 14px !important;
+          }
+          
+          #decode-button {
+            bottom: 30px !important;
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          #decoded-result {
+            font-size: 2rem !important;
+          }
+          
+          #decode-button {
+            bottom: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: calc(100% - 40px) !important;
+            max-width: 300px !important;
+          }
         }
         
         .history-item {
