@@ -1,20 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 import p5 from 'p5';
 
-// 餐廳資料庫
+// 真實餐廳資料庫 - 台北市中正區 NTUT 周邊
 const FOOD_DATABASE = [
-  { name: "阿姨麵攤", type: "CHINESE", price: "NT$ 50-100", distance: "180M", id: "0x1A2F", address: "台北市大安區忠孝東路三段1號" },
-  { name: "日式拉麵", type: "JAPANESE", price: "NT$ 150-250", distance: "220M", id: "0x2B3G", address: "台北市大安區基隆路四段43號" },
-  { name: "鹹酥雞攤", type: "TAIWANESE", price: "NT$ 80-150", distance: "95M", id: "0x3C4H", address: "台北市大安區復興南路一段390號" },
-  { name: "便當店", type: "CHINESE", price: "NT$ 70-120", distance: "160M", id: "0x4D5I", address: "台北市大安區建國南路二段151號" },
-  { name: "手搖飲料", type: "BEVERAGE", price: "NT$ 30-80", distance: "45M", id: "0x5E6J", address: "台北市大安區忠孝東路三段96號" },
-  { name: "義大利麵", type: "ITALIAN", price: "NT$ 180-300", distance: "350M", id: "0x6F7K", address: "台北市大安區市民大道四段100號" },
-  { name: "滷味攤", type: "TAIWANESE", price: "NT$ 60-100", distance: "130M", id: "0x7G8L", address: "台北市大安區光復南路290號" },
-  { name: "早餐店", type: "MIXED", price: "NT$ 40-80", distance: "75M", id: "0x8H9M", address: "台北市大安區忠孝東路四段2號" },
-  { name: "韓式料理", type: "KOREAN", price: "NT$ 200-350", distance: "280M", id: "0x9I0N", address: "台北市大安區敦化南路一段187號" },
-  { name: "泰式餐廳", type: "THAI", price: "NT$ 120-200", distance: "190M", id: "0xAJ1O", address: "台北市大安區仁愛路四段300號" },
-  { name: "素食自助餐", type: "VEGETARIAN", price: "NT$ 80-150", distance: "240M", id: "0xBK2P", address: "台北市大安區信義路四段6號" },
-  { name: "牛排館", type: "WESTERN", price: "NT$ 300-500", distance: "420M", id: "0xCL3Q", address: "台北市大安區延吉街131號" }
+  { name: "麗宴自助餐", type: "自助餐", price: "NT$ 1-200", distance: "180M", id: "0x1A2F", address: "台北市中正區", openingHours: "10:30-20:00", googleMapsLink: "https://maps.app.goo.gl/D3jLVXK74b1FQ7ZC8?g_st=ipc" },
+  { name: "全家", type: "便利商店", price: "NT$ 1-200", distance: "50M", id: "0x2B3G", address: "台北市中正區", openingHours: "24H", googleMapsLink: "" },
+  { name: "7-11", type: "便利商店", price: "NT$ 1-200", distance: "65M", id: "0x3C4H", address: "台北市中正區", openingHours: "24H", googleMapsLink: "" },
+  { name: "麵屋千雲 光華店", type: "拉麵", price: "NT$ 200-400", distance: "120M", id: "0x4D5I", address: "100台北市中正區臨沂街3巷1號", openingHours: "11:00-03:00", googleMapsLink: "https://maps.app.goo.gl/m7U5xhc4LE27vpnG8" },
+  { name: "蔣老爹麵食忠孝新生店", type: "中式麵", price: "NT$ 1-200", distance: "95M", id: "0x5E6J", address: "100台北市中正區臨沂街3巷19號", openingHours: "11:00-21:00", googleMapsLink: "https://maps.app.goo.gl/9horoABkL9VWKFuR6" },
+  { name: "好滋味越南美食", type: "越式", price: "NT$ 1-200", distance: "110M", id: "0x6F7K", address: "100台北市中正區臨沂街3巷11號", openingHours: "11:00-14:20、17:00-20:20", googleMapsLink: "https://maps.app.goo.gl/XFAnhjPiZkfgSiGF7" },
+  { name: "喬喜蛋炒飯專賣店", type: "台式炒飯", price: "NT$ 1-200", distance: "105M", id: "0x7G8L", address: "100台北市中正區臨沂街3巷7號", openingHours: "週一~週六 11:00-14:00、17:00-20:00", googleMapsLink: "https://maps.app.goo.gl/T4wQNjy1LXz58NsT8" },
+  { name: "楊記愛炒飯", type: "台式炒飯", price: "NT$ 1-200", distance: "200M", id: "0x8H9M", address: "100台北市中正區八德路一段82巷9弄19號", openingHours: "營業時間不定", googleMapsLink: "https://maps.app.goo.gl/eQKAeh1mSmw7VZZ37" },
+  { name: "垃圾(喇舌)麵", type: "台式麵", price: "NT$ 1-200", distance: "185M", id: "0x9I0N", address: "100台北市中正區八德路一段82巷9弄", openingHours: "週一~週五 09:00-18:30", googleMapsLink: "https://maps.app.goo.gl/MKw6oEh6pQgaJdPn6" },
+  { name: "噽香鐵板燒便當", type: "台式", price: "NT$ 1-200", distance: "190M", id: "0xAJ1O", address: "100台北市中正區八德路一段82巷9弄9號1樓", openingHours: "週一~週六 10:30-20:30", googleMapsLink: "https://maps.app.goo.gl/VL2W4EEUMKqCnmqa9" },
+  { name: "咖食堂", type: "咖哩飯", price: "NT$ 1-200", distance: "140M", id: "0xBK2P", address: "台北市中正區", openingHours: "營業時間不定", googleMapsLink: "" },
+  { name: "雞肉本家 光華店", type: "雞肉飯", price: "NT$ 1-200", distance: "130M", id: "0xCL3Q", address: "台北市中正區", openingHours: "營業時間不定", googleMapsLink: "" },
+  { name: "背鍋的人mini鍋", type: "火鍋", price: "NT$ 1-200", distance: "160M", id: "0xDM4R", address: "台北市中正區", openingHours: "營業時間不定", googleMapsLink: "" },
+  { name: "I'M PASTA 光華店", type: "義大利麵", price: "NT$ 1-200", distance: "150M", id: "0xEN5S", address: "台北市中正區", openingHours: "營業時間不定", googleMapsLink: "" },
+  { name: "伍柒玖牛肉麵飯館", type: "牛肉麵", price: "NT$ 1-200", distance: "175M", id: "0xFO6T", address: "台北市中正區", openingHours: "營業時間不定", googleMapsLink: "" },
+  { name: "享之饌光華店", type: "海鮮粥", price: "NT$ 1-200", distance: "145M", id: "0xGP7U", address: "台北市中正區", openingHours: "營業時間不定", googleMapsLink: "" },
+  { name: "阿姐的店碳烤三明治", type: "三明治", price: "NT$ 1-200", distance: "85M", id: "0xHQ8V", address: "台北市中正區", openingHours: "營業時間不定", googleMapsLink: "" },
+  { name: "山本軒", type: "丼飯", price: "NT$ 1-200", distance: "155M", id: "0xIR9W", address: "台北市中正區", openingHours: "營業時間不定", googleMapsLink: "" },
+  { name: "麥當勞", type: "速食", price: "NT$ 1-200", distance: "100M", id: "0xJS0X", address: "台北市中正區", openingHours: "營業時間依分店而定", googleMapsLink: "" }
 ];
 
 let decodeHistory: any[] = [];
@@ -326,6 +333,7 @@ function App() {
             TYPE: ${selectedFood.type}<br>
             PRICE_RANGE: ${selectedFood.price}<br>
             DISTANCE: ${selectedFood.distance}<br>
+            OPENING_HOURS: ${selectedFood.openingHours}<br>
             FOOD_ID: ${selectedFood.id}
           `;
         }
@@ -419,7 +427,7 @@ function App() {
         });
         
         const historyItem = {
-          restaurant: food,
+          ...food,
           timestamp: timestamp,
           id: Date.now()
         };
@@ -442,8 +450,22 @@ function App() {
       const loadHistory = () => {
         const saved = localStorage.getItem('ntut-food-history');
         if (saved) {
-          decodeHistory = JSON.parse(saved);
-          updateHistoryDisplay();
+          try {
+            const rawHistory = JSON.parse(saved);
+            // 過濾掉不匹配新格式的歷史項目
+            decodeHistory = rawHistory.filter((item: any) => 
+              item.name && item.type && item.price && item.distance && item.timestamp
+            );
+            // 如果清理後的歷史紀錄與原始不同，保存清理後的版本
+            if (decodeHistory.length !== rawHistory.length) {
+              saveHistory();
+            }
+            updateHistoryDisplay();
+          } catch (e) {
+            // 如果解析失敗，重置歷史紀錄
+            decodeHistory = [];
+            localStorage.removeItem('ntut-food-history');
+          }
         }
       };
 
@@ -462,11 +484,12 @@ function App() {
         }
         
         historyList.innerHTML = decodeHistory.map(item => `
-          <div class="history-item" onclick="openGoogleMapsFromHistory('${item.address}', '${item.name}')">
+          <div class="history-item" onclick="openGoogleMapsFromHistory('${item.address}', '${item.name}', '${item.googleMapsLink || ''}')">
             <div class="history-item-name">${item.name}</div>
             <div class="history-item-details">
               ${item.type} | ${item.price}<br>
-              DIST: ${item.distance}
+              DIST: ${item.distance}<br>
+              HOURS: ${item.openingHours || 'N/A'}
             </div>
             <div class="history-item-time">${item.timestamp}</div>
           </div>
@@ -476,16 +499,28 @@ function App() {
       const openGoogleMaps = () => {
         if (!selectedFood) return;
         
-        const query = encodeURIComponent(selectedFood.address);
-        const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
-        window.open(url, '_blank');
+        // 優先使用真實的 Google Maps 連結
+        if (selectedFood.googleMapsLink && selectedFood.googleMapsLink.trim() !== '') {
+          window.open(selectedFood.googleMapsLink, '_blank');
+        } else {
+          // 回退到搜尋模式
+          const query = encodeURIComponent(`${selectedFood.address} ${selectedFood.name}`);
+          const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
+          window.open(url, '_blank');
+        }
       };
 
       // 將函數掛到全局
-      (window as any).openGoogleMapsFromHistory = (address: string, name: string) => {
-        const query = encodeURIComponent(address + ' ' + name);
-        const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
-        window.open(url, '_blank');
+      (window as any).openGoogleMapsFromHistory = (address: string, name: string, googleMapsLink?: string) => {
+        // 優先使用真實的 Google Maps 連結
+        if (googleMapsLink && googleMapsLink.trim() !== '') {
+          window.open(googleMapsLink, '_blank');
+        } else {
+          // 回退到搜尋模式
+          const query = encodeURIComponent(address + ' ' + name);
+          const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
+          window.open(url, '_blank');
+        }
       };
 
       p.windowResized = () => {
