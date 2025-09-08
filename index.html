@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NTUT.食慾編碼</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background: #0a0a0a;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+        
+        #ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        #header {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            color: #ffffff;
+            font-size: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 300;
+            opacity: 0.7;
+        }
+        
+        #decode-btn {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            border: 2px solid #ffffff;
+            background: transparent;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 400;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+        }
+        
+        #decode-btn:hover {
+            background: #ffffff;
+            color: #0a0a0a;
+            box-shadow: 0 0 20px #ffffff33;
+        }
+        
+        #decode-btn.decoding {
+            animation: glitch-btn 0.2s infinite;
+            border-color: #ff00ff;
+            color: #ff00ff;
+        }
+        
+        #result-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #ffffff;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        #restaurant-name {
+            font-size: 4rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px #ff00ff66;
+        }
+        
+        #restaurant-details {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+        
+        #data-stream {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #00ff7f;
+            opacity: 0.6;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+        
+        #history-panel {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: 280px;
+            max-height: 70vh;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        #history-panel.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+        
+        #history-title {
+            color: #00ff7f;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .history-item {
+            margin-bottom: 12px;
+            padding: 10px;
+            border: 1px solid #333;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .history-item:hover {
+            border-color: #00ff7f;
+            background: rgba(0, 255, 127, 0.05);
+            box-shadow: 0 0 10px rgba(0, 255, 127, 0.2);
+        }
+        
+        .history-item-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        
+        .history-item-details {
+            font-size: 10px;
+            color: #999;
+            line-height: 1.4;
+        }
+        
+        .history-item-time {
+            font-size: 9px;
+            color: #666;
+            margin-top: 5px;
+            text-align: right;
+        }
+        
+        #overlay-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 50;
+        }
+        
+        #overlay-mask.active {
+            opacity: 1;
+        }
+        
+        @keyframes glitch-btn {
+            0%, 100% { transform: translateX(-50%) translate(0); }
+            20% { transform: translateX(-50%) translate(-2px, 2px); }
+            40% { transform: translateX(-50%) translate(-2px, -2px); }
+            60% { transform: translateX(-50%) translate(2px, 2px); }
+            80% { transform: translateX(-50%) translate(2px, -2px); }
+        }
+        
+        .glitch-text {
+            animation: glitch-text 0.3s ease-in-out;
+        }
+        
+        @keyframes glitch-text {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); color: #ff00ff; }
+            40% { transform: translate(-2px, -2px); color: #00ffff; }
+            60% { transform: translate(2px, 2px); color: #ffff00; }
+            80% { transform: translate(2px, -2px); color: #ff00ff; }
+        }
+    </style>
+</head>
+<body>
+    <div id="ui-overlay">
+        <div id="header">
+            NTUT.CULINARY_PROTOCOL v2.1<br>
+            STATUS: READY_FOR_DECODE
+        </div>
+        
+        <div id="data-stream">
+            SCANNING_FOOD_DATABASE...<br>
+            NEURAL_TASTE_NETWORK_ONLINE<br>
+            HUNGER_LEVEL: MODERATE<br>
+            LOCATION: TAIPEI_TECH
+        </div>
+        
+        <button id="decode-btn">DECODE LUNCH_PROTOCOL</button>
+        
+        <div id="result-display">
+            <div id="restaurant-name"></div>
+            <div id="restaurant-details"></div>
+            <button id="maps-btn" style="display: none; margin-top: 20px; padding: 10px 20px; background: transparent; border: 1px solid #00ff7f; color: #00ff7f; font-family: 'JetBrains Mono', monospace; cursor: pointer; transition: all 0.3s ease;">
+                NAVIGATE_TO_LOCATION
+            </button>
+        </div>
+        
+        <div id="history-panel">
+            <div id="history-title">DECODE_HISTORY</div>
+            <div id="history-list"></div>
+        </div>
+    </div>
+    
+    <div id="overlay-mask"></div>
+    
+    <script src="sketch.js"></script>
+</body>
+</html>
